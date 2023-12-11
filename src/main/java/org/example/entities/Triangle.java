@@ -1,5 +1,7 @@
 package org.example.entities;
 
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
@@ -27,6 +29,13 @@ public class Triangle {
     }
 
     public void Draw(){
+        Vector3f vector = new Vector3f(0.0f, 0.0f, 0.0f);
+        Matrix4f matrix = new Matrix4f();
+        matrix.translate(vector);
+
+        int transformLoc = GL20.glGetUniformLocation(shader_program, "transform");
+        GL20.glUniformMatrix4fv(transformLoc, false, matrix.get(new float[16]));
+
         GL30.glBufferData(GL15.GL_ARRAY_BUFFER, GetMesh(), GL15.GL_STATIC_DRAW);
         GL30.glUseProgram(shader_program);
         GL30.glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -44,7 +53,7 @@ public class Triangle {
         GL30.glAttachShader(shader_program, vertex_shader_obj);
         GL30.glAttachShader(shader_program, fragment_shader_obj);
 
-        GL30.glBindAttribLocation(shader_program, pointer, "vertex_pos");
+        GL30.glBindAttribLocation(shader_program, pointer, "position");
         GL30.glLinkProgram(shader_program);
 
         GL30.glDeleteShader(vertex_shader_obj);
