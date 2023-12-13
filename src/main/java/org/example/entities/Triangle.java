@@ -1,5 +1,7 @@
 package org.example.entities;
 
+import org.example.api.ReadFile;
+import org.joml.Matrix3fc;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL15;
@@ -15,9 +17,13 @@ public class Triangle {
     int vertex_shader_obj, fragment_shader_obj, shader_program;
     int pointer;
     float size = 1f;
-    public Triangle(Mesh mesh){
-        this.mesh = mesh;
-        //Core.VBO = GL30.glGenBuffers();
+    Vector3f position = new Vector3f(0f,0f,0f);
+    public Triangle(){
+        Vertex left = new Vertex(-0.5f, -0.5f, 0f);
+        Vertex right = new Vertex(0.5f, -0.5f, 0f);
+        Vertex up = new Vertex(0f, 0.5f, 0f);
+
+        this.mesh = new Mesh(left, right, up);
 
         VBO = GL30.glGenBuffers();
 
@@ -26,12 +32,40 @@ public class Triangle {
 
         GL30.glEnableVertexAttribArray(pointer);
         GL30.glVertexAttribPointer(pointer, 3, GL_FLOAT, false, 0, 0);
+
+        SetShaders(ReadFile.Read("vert.shdr"), ReadFile.Read("frag.shdr"));
+    }
+
+    public Triangle(float pos_x, float pos_y){
+        Vertex left = new Vertex(-0.5f, -0.5f, 0f);
+        Vertex right = new Vertex(0.5f, -0.5f, 0f);
+        Vertex up = new Vertex(0f, 0.5f, 0f);
+
+        this.mesh = new Mesh(left, right, up);
+
+        VBO = GL30.glGenBuffers();
+
+        GL30.glBindBuffer(GL15.GL_ARRAY_BUFFER, VBO);
+        GL30.glBufferData(GL15.GL_ARRAY_BUFFER, GetMesh(), GL15.GL_STATIC_DRAW);
+
+        GL30.glEnableVertexAttribArray(pointer);
+        GL30.glVertexAttribPointer(pointer, 3, GL_FLOAT, false, 0, 0);
+
+        SetShaders(ReadFile.Read("vert.shdr"), ReadFile.Read("frag.shdr"));
+
+        position.x = pos_x;
+        position.y = pos_y;
+
+        Matrix4f matrix = new Matrix4f();
+        matrix.translate(position);
+
+        int transformLoc = GL20.glGetUniformLocation(shader_program, "transform");
+        GL20.glUniformMatrix4fv(transformLoc, false, matrix.get(new float[16]));
     }
 
     public void Draw(){
-        Vector3f vector = new Vector3f(0.0f, 0.0f, 0.0f);
         Matrix4f matrix = new Matrix4f();
-        matrix.translate(vector);
+        matrix.translate(position);
 
         int transformLoc = GL20.glGetUniformLocation(shader_program, "transform");
         GL20.glUniformMatrix4fv(transformLoc, false, matrix.get(new float[16]));
